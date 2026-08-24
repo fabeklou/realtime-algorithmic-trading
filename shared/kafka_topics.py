@@ -12,4 +12,10 @@ MARKET_PRICES_TOPIC = TopicSpec(
     replication_factor=1,
 )
 
-REQUIRED_TOPIC_LIST = [MARKET_PRICES_TOPIC]
+MARKET_FEATURES_TOPIC = TopicSpec(
+    name="market-features",
+    num_partitions=3,
+    replication_factor=1,
+)
+
+REQUIRED_TOPIC_LIST = [MARKET_PRICES_TOPIC, MARKET_FEATURES_TOPIC]

@@ -37,7 +37,7 @@ def fetch_real_price_event(symbol: str) -> dict | None:
     return {
         "symbol": symbol,
         "price": float(data["price"]),
-        "event_timestamp": datetime.now(timezone.utc).isoformat(),
+        "event_timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
     }
 
 

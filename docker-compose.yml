@@ -23,5 +23,50 @@ services:
     volumes:
       - kafka_kraft:/var/lib/kafka/data
 
+  jobmanager:
+    image: flink:1.20.0-scala_2.12-java17
+    container_name: flink-jobmanager
+    ports:
+      - "8081:8081"   # UI web Flink, utile pour visualiser les jobs
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        rest.address: jobmanager
+        rest.bind-address: 0.0.0.0
+    volumes:
+      - ./flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:/opt/flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:ro
+
+  taskmanager:
+    image: flink:1.20.0-scala_2.12-java17
+    container_name: flink-taskmanager
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 3
+    scale: 1
+    volumes:
+      - ./flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:/opt/flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:ro
+
+  sql-client:
+    image: flink:1.20.0-scala_2.12-java17
+    container_name: flink-sql-client
+    depends_on:
+      - jobmanager
+    command: ["tail", "-f", "/dev/null"]   # garde le conteneur vivant, ne lance rien
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        rest.address: jobmanager
+    volumes:
+      - ./flink/sql:/opt/sql
+      - ./flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:/opt/flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:ro
+
 volumes:
   kafka_kraft:
