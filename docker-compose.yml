@@ -18,7 +18,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      #KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
 
     volumes:
       - kafka_kraft:/var/lib/kafka/data
@@ -68,5 +69,23 @@ services:
       - ./flink/sql:/opt/sql
       - ./flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:/opt/flink/lib/flink-sql-connector-kafka-3.3.0-1.20.jar:ro
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse
+    ports:
+      - "8123:8123"   # interface HTTP (requêtes SQL, UI web basique)
+      - "9000:9000"   # protocole natif TCP (clients performants)
+    environment:
+      - CLICKHOUSE_DB=trading
+      - CLICKHOUSE_USER=trading_user
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init:/docker-entrypoint-initdb.d
+      - ./data/klines:/var/lib/clickhouse/user_files/klines:ro
+    depends_on:
+      - kafka
+
 volumes:
   kafka_kraft:
+  clickhouse_data:
